@@ -1,0 +1,44 @@
+version: 1
+task: acrobot_swingup_v1
+description: "Energy-shaping + steering swing-up with search-based capture (gear=9)."
+
+thresholds:
+  near_top_angle_rad: 0.45
+  near_top_distance: 0.35
+  overspeed_abs: 2.0
+  energy_target: 1.75
+  low_energy_margin: 0.40
+
+memory:
+  capture_fail_count: 0
+  recent_failures: []
+  last_mode: SOLVE
+  prev_top_angle: null
+
+initial_mode: SOLVE
+
+modes:
+  SOLVE:
+    primitive: solve_swingup
+    dwell_steps: 1
+    switch_if:
+      - if: "target_distance is not None and target_distance < 0.25 and speed_norm < 3.5"
+        then: CAPTURE
+      - if: "target_distance is not None and target_distance < 0.50 and speed_norm > 3.0"
+        then: DAMP
+  DAMP:
+    primitive: damp_velocity
+    dwell_steps: 2
+    switch_if:
+      - if: "target_distance is not None and target_distance > 0.80"
+        then: SOLVE
+      - if: "target_distance is not None and target_distance < 0.30 and speed_norm < 2.0"
+        then: CAPTURE
+  CAPTURE:
+    primitive: capture_top
+    dwell_steps: 25
+    switch_if:
+      - if: "target_distance is not None and target_distance > 1.20"
+        then: SOLVE
+      - if: "speed_norm > 5.0"
+        then: DAMP
