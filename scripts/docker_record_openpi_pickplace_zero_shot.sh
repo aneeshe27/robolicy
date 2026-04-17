@@ -18,6 +18,9 @@ fi
 
 CONTAINER_OUTPUT="/workspace${OUTPUT_PATH#${ROOT_DIR}}"
 
+# DURATION=0 means "record until the pi0 bridge rollout exits", which pairs
+# naturally with OPENPI_MAX_STEPS. If the caller sets DURATION>0, the
+# recorder stops after that many seconds even if the rollout is still going.
 exec docker run "${DOCKER_FLAGS[@]}" \
   --network host \
   --user "$(id -u):$(id -g)" \
@@ -28,21 +31,21 @@ exec docker run "${DOCKER_FLAGS[@]}" \
   --env HOME=/tmp/robolicy-home \
   --env WIDTH="${WIDTH_VALUE}" \
   --env HEIGHT="${HEIGHT_VALUE}" \
-  --env FPS="${FPS:-30}" \
-  --env DURATION="${DURATION:-16}" \
-  --env BOOT_WAIT="${BOOT_WAIT:-40}" \
-  --env CROP_X="${CROP_X:-0}" \
-  --env CROP_Y="${CROP_Y:-0}" \
-  --env CROP_W="${CROP_W:-${WIDTH_VALUE}}" \
-  --env CROP_H="${CROP_H:-${HEIGHT_VALUE}}" \
+  --env FPS="${FPS:-20}" \
+  --env DURATION="${DURATION:-0}" \
+  --env BOOT_WAIT="${BOOT_WAIT:-3}" \
+  --env TILE_WIDTH="${TILE_WIDTH:-640}" \
+  --env TILE_HEIGHT="${TILE_HEIGHT:-480}" \
+  --env RECORDER_STARTUP_TIMEOUT="${RECORDER_STARTUP_TIMEOUT:-90}" \
+  --env EXTERIOR_TOPIC="${EXTERIOR_TOPIC:-/camera/color/image_raw}" \
+  --env WRIST_TOPIC="${WRIST_TOPIC:-/wrist_camera/color/image_raw}" \
   --env STACK_SCRIPT="/workspace/scripts/run_openpi_pickplace_zero_shot.sh" \
+  --env RECORDER_SCRIPT="/workspace/scripts/record_openpi_rollout_topics.py" \
   --env OPENPI_SERVER_HOST="${OPENPI_SERVER_HOST:-127.0.0.1}" \
-  --env OPENPI_SERVER_PORT="${OPENPI_SERVER_PORT:-8000}" \
+  --env OPENPI_SERVER_PORT="${OPENPI_SERVER_PORT:-8765}" \
   --env OPENPI_PROMPT="${OPENPI_PROMPT:-pick up the red cube and place it in the red bin}" \
   --env OPENPI_MAX_STEPS="${OPENPI_MAX_STEPS:-150}" \
   --env OPENPI_OPEN_LOOP_HORIZON="${OPENPI_OPEN_LOOP_HORIZON:-8}" \
   --env OPENPI_MAX_ABS_JOINT_VELOCITY="${OPENPI_MAX_ABS_JOINT_VELOCITY:-0.35}" \
-  --env OPENPI_GAZEBO_GUI=true \
-  --env OPENPI_GAZEBO_HEADLESS=false \
   "${IMAGE_TAG}" \
-  /workspace/scripts/record_external_pickplace.sh "${CONTAINER_OUTPUT}"
+  /workspace/scripts/record_openpi_pickplace_topics.sh "${CONTAINER_OUTPUT}"

@@ -88,11 +88,20 @@ To record a rollout:
 ```bash
 OPENPI_SERVER_PORT=8765 \
 OPENPI_PROMPT="pick up the red cube and place it in the red bin" \
-DURATION=12 \
 ./scripts/docker_record_openpi_pickplace_zero_shot.sh outputs/pickplace_openpi_zero_shot.mp4
 ```
 
-At the moment this records the full Gazebo window under `Xvfb`, including some UI chrome, but it produces a visible mp4 over SSH.
+The recorder subscribes directly to the exterior and wrist ROS image topics
+(the same streams the bridge sends to `pi0`) and writes a side-by-side
+`exterior | wrist` mp4 with a prompt/time banner. No `gzclient` or
+`x11grab` is involved, so the video is exactly what `pi0` is conditioning on
+and can't go black if the Gazebo GUI fails to paint on `Xvfb`.
+
+By default the recording runs for the lifetime of the rollout
+(`OPENPI_MAX_STEPS` decides how long). Set `DURATION=<seconds>` to cap it
+earlier, or tune `FPS`, `TILE_WIDTH`, `TILE_HEIGHT` if you want a different
+output layout. The rollout's ROS log is tee'd to
+`outputs/pickplace_record_stack.log` for post-mortems.
 
 To pull an artifact back to your local machine:
 
