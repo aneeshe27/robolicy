@@ -31,5 +31,6 @@ python3 /workspace/scripts/openpi_pickplace_zero_shot.py \
   --open-loop-horizon "${OPENPI_OPEN_LOOP_HORIZON:-8}" \
   --action-mode "${OPENPI_ACTION_MODE:-velocity}" \
   --max-abs-joint-velocity "${OPENPI_MAX_ABS_JOINT_VELOCITY:-1.2}" \
+  --velocity-scale "${OPENPI_VELOCITY_SCALE:-1.0}" \
   --gripper-mode "${OPENPI_GRIPPER_MODE:-continuous}" \
   "$@"

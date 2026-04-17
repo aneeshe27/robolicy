@@ -262,6 +262,16 @@ def parse_args():
             "as-is up to this magnitude; it is NOT rescaled by this value."
         ),
     )
+    parser.add_argument(
+        "--velocity-scale",
+        type=float,
+        default=1.0,
+        help=(
+            "Multiplicative scale (<=1) applied to policy joint velocities "
+            "before the safety clamp. 1.0 = DROID-faithful; smaller values "
+            "slow the rollout down without changing the plan shape."
+        ),
+    )
     parser.add_argument("--open-threshold", type=float, default=0.5)
     parser.add_argument(
         "--gripper-mode",
@@ -367,9 +377,11 @@ def main():
             controller.command_joint_positions(raw_action[:7])
         else:
             # DROID policy outputs 7 joint velocities in rad/s directly.
-            # We clamp to a safety bound but do NOT rescale by that bound.
+            # We (optionally) scale, then clamp to a safety bound. The clamp
+            # does NOT rescale; it only caps.
+            joint_velocity = raw_action[:7] * float(args.velocity_scale)
             joint_velocity = np.clip(
-                raw_action[:7], -args.max_abs_joint_velocity, args.max_abs_joint_velocity
+                joint_velocity, -args.max_abs_joint_velocity, args.max_abs_joint_velocity
             )
             if not args.disable_joint_guard:
                 joint_velocity = controller.guard_joint_velocities(
