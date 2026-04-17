@@ -21,6 +21,9 @@ if [[ -d "${ROOT_DIR}/external/pick-and-place" ]]; then
   copy_if_repo_exists \
     "${ROOT_DIR}/overlays/pick_and_place/robots/panda_openpi_cameras.urdf.xacro" \
     "${ROOT_DIR}/external/pick-and-place/pick_and_place/robots/panda_openpi_cameras.urdf.xacro"
+  copy_if_repo_exists \
+    "${ROOT_DIR}/overlays/pick_and_place/models/block_red/model.sdf" \
+    "${ROOT_DIR}/external/pick-and-place/pick_and_place/models/block_red/model.sdf"
 fi
 
 if [[ -d "${ROOT_DIR}/external/openpi" ]]; then

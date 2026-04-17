@@ -133,7 +133,13 @@ class PandaVelocityController:
         self._publisher = rospy.Publisher(args.joint_command_topic, JointCommand, queue_size=1, tcp_nodelay=True)
         self._move_client = actionlib.SimpleActionClient(args.gripper_move_action, MoveAction)
         self._grasp_client = actionlib.SimpleActionClient(args.gripper_grasp_action, GraspAction)
-        self._last_gripper_open = None
+        # Continuous gripper command tracking: last *width in meters* we asked
+        # the action server for, and whether that command was in grasp mode.
+        self._last_gripper_width = None
+        self._last_gripper_grasping = None
+        self._joint_lower = np.asarray(args.joint_soft_lower, dtype=np.float32)
+        self._joint_upper = np.asarray(args.joint_soft_upper, dtype=np.float32)
+        self._joint_margin = float(args.joint_soft_margin)
 
     def wait_until_ready(self, timeout_sec):
         if not self._move_client.wait_for_server(rospy.Duration(timeout_sec)):
@@ -158,21 +164,43 @@ class PandaVelocityController:
         msg.mode = JointCommand.POSITION_MODE
         self._publisher.publish(msg)
 
+    def guard_joint_velocities(self, velocities, current_positions):
+        """Attenuate velocities that would push joints past their soft limits.
+
+        We linearly fade velocity components that point toward a soft limit
+        as the joint approaches it, reaching zero at the limit itself. This
+        is a cheap workspace safety (no FK required) that's enough to stop
+        pi0's broad "dive forward" chunks from driving the arm into the
+        table while keeping normal motion unaffected.
+        """
+        if current_positions is None:
+            return velocities
+        out = np.asarray(velocities, dtype=np.float32).copy()
+        positions = np.asarray(current_positions, dtype=np.float32)
+        for i in range(len(out)):
+            low = self._joint_lower[i]
+            high = self._joint_upper[i]
+            margin = max(self._joint_margin, 1e-6)
+            if positions[i] <= low and out[i] < 0:
+                out[i] = 0.0
+            elif positions[i] < low + margin and out[i] < 0:
+                out[i] *= (positions[i] - low) / margin
+            if positions[i] >= high and out[i] > 0:
+                out[i] = 0.0
+            elif positions[i] > high - margin and out[i] > 0:
+                out[i] *= (high - positions[i]) / margin
+        return out
+
     def stop(self):
         if self._args.action_mode == "position":
             return
         self.command_joint_velocities(np.zeros(7, dtype=np.float32))
 
-    def set_gripper_open(self, should_open):
-        if should_open == self._last_gripper_open:
-            return
-        self._last_gripper_open = should_open
+    def _send_move(self, width_m):
+        goal = MoveGoal(width=float(width_m), speed=self._args.gripper_speed)
+        self._move_client.send_goal(goal)
 
-        if should_open:
-            goal = MoveGoal(width=self._args.gripper_open_width, speed=self._args.gripper_speed)
-            self._move_client.send_goal(goal)
-            return
-
+    def _send_grasp(self):
         goal = GraspGoal()
         goal.width = self._args.grasp_width
         goal.speed = self._args.gripper_speed
@@ -180,6 +208,39 @@ class PandaVelocityController:
         goal.epsilon.inner = self._args.grasp_epsilon_inner
         goal.epsilon.outer = self._args.grasp_epsilon_outer
         self._grasp_client.send_goal(goal)
+
+    def command_gripper_normalized(self, normalized):
+        """Continuous gripper command: 0.0 = closed, 1.0 = fully open.
+
+        Mirrors the DROID gripper action convention. When the target width
+        is below ``grasp_width + margin`` we switch to ``GraspAction`` so
+        the fingers actually squeeze onto objects; otherwise we use
+        ``MoveAction`` to the absolute width. We rate-limit by only
+        re-sending when the target width changed more than
+        ``gripper_width_deadband`` or the grasp/release mode flipped.
+        """
+        normalized = float(np.clip(normalized, 0.0, 1.0))
+        target_width = normalized * self._args.gripper_open_width
+        should_grasp = target_width <= (self._args.grasp_width + self._args.gripper_grasp_margin)
+
+        if self._last_gripper_grasping == should_grasp and self._last_gripper_width is not None:
+            if abs(self._last_gripper_width - target_width) < self._args.gripper_width_deadband:
+                return
+
+        if should_grasp:
+            self._send_grasp()
+        else:
+            self._send_move(target_width)
+
+        self._last_gripper_grasping = should_grasp
+        self._last_gripper_width = target_width
+
+    def set_gripper_open(self, should_open):
+        # Legacy binary API used during startup to fully open the gripper.
+        if should_open:
+            self.command_gripper_normalized(1.0)
+        else:
+            self.command_gripper_normalized(0.0)
 
 
 def parse_args():
@@ -190,9 +251,51 @@ def parse_args():
     parser.add_argument("--steps", type=int, default=150)
     parser.add_argument("--rate-hz", type=float, default=15.0)
     parser.add_argument("--open-loop-horizon", type=int, default=8)
-    parser.add_argument("--action-mode", choices=("position", "velocity"), default="position")
-    parser.add_argument("--max-abs-joint-velocity", type=float, default=0.35)
+    parser.add_argument("--action-mode", choices=("position", "velocity"), default="velocity")
+    parser.add_argument(
+        "--max-abs-joint-velocity",
+        type=float,
+        default=1.2,
+        help=(
+            "Per-joint safety clamp (rad/s) applied to DROID joint velocities "
+            "before publishing. The raw policy output is passed through "
+            "as-is up to this magnitude; it is NOT rescaled by this value."
+        ),
+    )
     parser.add_argument("--open-threshold", type=float, default=0.5)
+    parser.add_argument(
+        "--gripper-mode",
+        choices=("continuous", "binary"),
+        default="continuous",
+        help="continuous: send normalized width target (DROID spec). binary: open/close around --open-threshold.",
+    )
+    parser.add_argument("--gripper-grasp-margin", type=float, default=0.005)
+    parser.add_argument("--gripper-width-deadband", type=float, default=0.004)
+    parser.add_argument(
+        "--disable-joint-guard",
+        action="store_true",
+        help="Disable the soft joint-limit guard (used to stop the arm diving into the table).",
+    )
+    parser.add_argument(
+        "--joint-soft-lower",
+        type=float,
+        nargs=7,
+        default=(-2.6, -1.3, -2.6, -2.9, -2.6, 0.05, -2.6),
+        help="Per-joint soft lower bound (rad). Tighter than Panda's hard limits to keep the end-effector above the table.",
+    )
+    parser.add_argument(
+        "--joint-soft-upper",
+        type=float,
+        nargs=7,
+        default=(2.6, 1.3, 2.6, -0.2, 2.6, 3.5, 2.6),
+        help="Per-joint soft upper bound (rad).",
+    )
+    parser.add_argument(
+        "--joint-soft-margin",
+        type=float,
+        default=0.15,
+        help="Approach-zone width (rad) for the soft limit fade-out.",
+    )
     parser.add_argument("--startup-timeout", type=float, default=40.0)
     parser.add_argument("--settle-seconds", type=float, default=2.0)
     parser.add_argument("--save-debug-dir", default=os.path.join(REPO_ROOT, "outputs", "openpi_debug"))
@@ -206,7 +309,7 @@ def parse_args():
     parser.add_argument("--gripper-grasp-action", default="/franka_gripper/grasp")
     parser.add_argument("--gripper-open-width", type=float, default=0.08)
     parser.add_argument("--gripper-speed", type=float, default=0.08)
-    parser.add_argument("--grasp-width", type=float, default=0.03)
+    parser.add_argument("--grasp-width", type=float, default=0.04)
     parser.add_argument("--grasp-force", type=float, default=15.0)
     parser.add_argument("--grasp-epsilon-inner", type=float, default=0.01)
     parser.add_argument("--grasp-epsilon-outer", type=float, default=0.01)
@@ -263,9 +366,20 @@ def main():
         if args.action_mode == "position":
             controller.command_joint_positions(raw_action[:7])
         else:
-            joint_velocity = np.clip(raw_action[:7], -1.0, 1.0) * args.max_abs_joint_velocity
+            # DROID policy outputs 7 joint velocities in rad/s directly.
+            # We clamp to a safety bound but do NOT rescale by that bound.
+            joint_velocity = np.clip(
+                raw_action[:7], -args.max_abs_joint_velocity, args.max_abs_joint_velocity
+            )
+            if not args.disable_joint_guard:
+                joint_velocity = controller.guard_joint_velocities(
+                    joint_velocity, obs.joint_position
+                )
             controller.command_joint_velocities(joint_velocity)
-        controller.set_gripper_open(bool(raw_action[7] > args.open_threshold))
+        if args.gripper_mode == "continuous":
+            controller.command_gripper_normalized(float(raw_action[7]))
+        else:
+            controller.set_gripper_open(bool(raw_action[7] > args.open_threshold))
         rate.sleep()
 
     controller.stop()

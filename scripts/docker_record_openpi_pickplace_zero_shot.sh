@@ -46,6 +46,8 @@ exec docker run "${DOCKER_FLAGS[@]}" \
   --env OPENPI_PROMPT="${OPENPI_PROMPT:-pick up the red cube and place it in the red bin}" \
   --env OPENPI_MAX_STEPS="${OPENPI_MAX_STEPS:-150}" \
   --env OPENPI_OPEN_LOOP_HORIZON="${OPENPI_OPEN_LOOP_HORIZON:-8}" \
-  --env OPENPI_MAX_ABS_JOINT_VELOCITY="${OPENPI_MAX_ABS_JOINT_VELOCITY:-0.35}" \
+  --env OPENPI_ACTION_MODE="${OPENPI_ACTION_MODE:-velocity}" \
+  --env OPENPI_MAX_ABS_JOINT_VELOCITY="${OPENPI_MAX_ABS_JOINT_VELOCITY:-1.2}" \
+  --env OPENPI_GRIPPER_MODE="${OPENPI_GRIPPER_MODE:-continuous}" \
   "${IMAGE_TAG}" \
   /workspace/scripts/record_openpi_pickplace_topics.sh "${CONTAINER_OUTPUT}"

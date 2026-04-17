@@ -52,7 +52,14 @@
   <joint name="panda_wrist_camera_joint" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_wrist_camera_link"/>
-    <origin xyz="0.08 0.0 0.06" rpy="0 ${-pi/2} 0"/>
+    <!--
+      Camera optical axis (+X of the sensor link) points along panda_hand's
+      +Z (i.e. out toward the fingertips). The extra roll of pi rotates the
+      image 180 deg around the optical axis so "up" in the wrist image is
+      the back of the hand rather than the palm side - previously the feed
+      came out upside down.
+    -->
+    <origin xyz="0.08 0.0 0.06" rpy="${pi} ${-pi/2} 0"/>
   </joint>
 
   <gazebo reference="panda_wrist_camera_link">

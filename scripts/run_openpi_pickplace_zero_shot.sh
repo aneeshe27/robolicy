@@ -29,5 +29,7 @@ python3 /workspace/scripts/openpi_pickplace_zero_shot.py \
   --prompt "${OPENPI_PROMPT:-pick up the red cube and place it in the red bin}" \
   --steps "${OPENPI_MAX_STEPS:-150}" \
   --open-loop-horizon "${OPENPI_OPEN_LOOP_HORIZON:-8}" \
-  --max-abs-joint-velocity "${OPENPI_MAX_ABS_JOINT_VELOCITY:-0.35}" \
+  --action-mode "${OPENPI_ACTION_MODE:-velocity}" \
+  --max-abs-joint-velocity "${OPENPI_MAX_ABS_JOINT_VELOCITY:-1.2}" \
+  --gripper-mode "${OPENPI_GRIPPER_MODE:-continuous}" \
   "$@"

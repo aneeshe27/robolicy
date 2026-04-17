@@ -29,13 +29,21 @@
 
     <include>
       <uri>model://pick_and_place/models/block_red</uri>
-      <pose>0.53 0 0.115 0 0 0</pose>
+      <pose>0.53 0 0.125 0 0 0</pose>
       <name>block_red_target</name>
     </include>
 
     <model name="openpi_exterior_camera">
       <static>true</static>
-      <pose>0.65 -0.25 0.75 0 0.84 2.68</pose>
+      <!--
+        DROID-like 3rd-person pose: camera sits on the operator side of the
+        table (negative Y), just above workbench height, and looks across
+        the X axis toward a point slightly past the robot base. With the
+        wider 1.30 rad (~74 deg) horizontal FOV this puts the red bin in
+        the lower-left, the red cube in the lower-right, and the Panda arm
+        in the left-of-center portion of the frame.
+      -->
+      <pose>-0.3 -1.1 0.38 0 0.21 1.222</pose>
       <link name="camera_link">
         <visual name="visual">
           <geometry>
@@ -53,7 +61,7 @@
           <visualize>false</visualize>
           <update_rate>20</update_rate>
           <camera>
-            <horizontal_fov>1.00</horizontal_fov>
+            <horizontal_fov>1.30</horizontal_fov>
             <image>
               <width>640</width>
               <height>480</height>
@@ -61,7 +69,7 @@
             </image>
             <clip>
               <near>0.03</near>
-              <far>3.0</far>
+              <far>4.0</far>
             </clip>
           </camera>
           <plugin name="openpi_exterior_camera_plugin" filename="libgazebo_ros_camera.so">
