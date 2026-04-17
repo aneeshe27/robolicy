@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="kitting_tray">
+    <static>true</static>
+    <link name="tray">
+      <collision name="base_collision">
+        <pose>0 0 0.015 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.56 0.42 0.03</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_left_collision">
+        <pose>0.27 0 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.42 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_right_collision">
+        <pose>-0.27 0 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.42 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_front_collision">
+        <pose>0 0.20 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.56 0.02 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_back_collision">
+        <pose>0 -0.20 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.56 0.02 0.08</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="base_visual">
+        <pose>0 0 0.015 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.56 0.42 0.03</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.14 0.18 0.14 1</ambient>
+          <diffuse>0.18 0.23 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_left_visual">
+        <pose>0.27 0 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.42 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.14 0.18 0.14 1</ambient>
+          <diffuse>0.18 0.23 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_right_visual">
+        <pose>-0.27 0 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.42 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.14 0.18 0.14 1</ambient>
+          <diffuse>0.18 0.23 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_front_visual">
+        <pose>0 0.20 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.56 0.02 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.14 0.18 0.14 1</ambient>
+          <diffuse>0.18 0.23 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_back_visual">
+        <pose>0 -0.20 0.055 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.56 0.02 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.14 0.18 0.14 1</ambient>
+          <diffuse>0.18 0.23 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="divider_x">
+        <pose>0 0 0.032 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.01 0.34 0.01</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.84 0.84 0.84 1</ambient>
+          <diffuse>0.90 0.90 0.90 1</diffuse>
+        </material>
+      </visual>
+      <visual name="divider_y">
+        <pose>0 0 0.032 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.48 0.01 0.01</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.84 0.84 0.84 1</ambient>
+          <diffuse>0.90 0.90 0.90 1</diffuse>
+        </material>
+      </visual>
+      <visual name="target_marker_a">
+        <pose>0.13 0.10 0.031 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.08 0.05 0.002</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.86 0.26 0.18 1</ambient>
+          <diffuse>0.92 0.31 0.20 1</diffuse>
+        </material>
+      </visual>
+      <visual name="target_marker_b">
+        <pose>-0.13 0.10 0.031 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.08 0.05 0.002</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.86 0.26 0.18 1</ambient>
+          <diffuse>0.92 0.31 0.20 1</diffuse>
+        </material>
+      </visual>
+      <visual name="target_marker_c">
+        <pose>0.13 -0.10 0.031 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.08 0.05 0.002</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.86 0.26 0.18 1</ambient>
+          <diffuse>0.92 0.31 0.20 1</diffuse>
+        </material>
+      </visual>
+      <visual name="target_marker_d">
+        <pose>-0.13 -0.10 0.031 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.08 0.05 0.002</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.86 0.26 0.18 1</ambient>
+          <diffuse>0.92 0.31 0.20 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

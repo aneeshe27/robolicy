@@ -2,6 +2,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 .Python
+.cache/
+.codex
 .venv/
 venv/
 .env
@@ -11,3 +13,8 @@ venv/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+outputs/
+external/noetic_ws/
+/external/openpi/
+/external/panda_simulator/
+/external/pick-and-place/

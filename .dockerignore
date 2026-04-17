@@ -1,0 +1,7 @@
+.git
+.codex
+outputs
+external/noetic_ws
+build
+.tmp_gazebo_home
+core

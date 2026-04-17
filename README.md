@@ -1,5 +1,119 @@
 # Acrobot V1 — Policy-Maintenance POC
 
+## Gazebo + pi0 Demo
+
+The active robot demo in this repo is a Dockerized **Franka Panda pick-and-place task in Gazebo** with a first-pass **`openpi` / `pi0_droid` zero-shot bridge**.
+
+The important path is:
+
+- `external/panda_simulator`: Franka Panda Gazebo stack
+- `external/pick-and-place`: upstream Panda pick-and-place task
+- `external/openpi`: policy server used for `pi0_droid`
+- [external/README.md](/home/aneeshe/projects/robolicy/external/README.md): deeper notes
+
+### What You Need
+
+- Linux machine with Docker
+- NVIDIA driver + NVIDIA Container Toolkit
+- network access to pull checkpoints and upstream repos
+- enough GPU memory for `pi0_droid`
+
+This flow works over SSH on `presto`; you do not need ROS installed on the host.
+
+### From Fresh Clone To Running
+
+Clone the repo and enter it:
+
+```bash
+git clone <your-github-url> robolicy
+cd robolicy
+```
+
+Fetch the upstream repos this demo depends on:
+
+```bash
+./scripts/fetch_external_demo_repos.sh
+```
+
+Build the two Docker images:
+
+```bash
+./scripts/docker_build_external_pickplace_image.sh
+./scripts/docker_build_openpi_server_image.sh
+```
+
+Start the `openpi` policy server in one shell. If port `8000` is busy on your machine, use `8765`.
+
+```bash
+OPENPI_SERVER_PORT=8765 \
+SERVER_ARGS='--port 8765 policy:checkpoint --policy.config=pi0_droid --policy.dir=gs://openpi-assets/checkpoints/pi0_droid' \
+./scripts/docker_run_openpi_droid_server.sh
+```
+
+In a second shell, run the zero-shot Gazebo rollout:
+
+```bash
+OPENPI_SERVER_PORT=8765 \
+OPENPI_PROMPT="pick up the red cube and place it in the red bin" \
+./scripts/docker_run_openpi_pickplace_zero_shot.sh
+```
+
+That will launch Gazebo, the Panda task, and the bridge client. The bridge sends:
+
+- exterior RGB image
+- wrist RGB image
+- Panda joint positions
+- gripper position
+- natural-language task prompt
+
+to the remote `pi0_droid` server, then executes the returned joint-position + gripper actions in Gazebo.
+
+### Recording And Debugging
+
+To save the first observation pair that gets sent to `pi0`:
+
+```bash
+OPENPI_SERVER_PORT=8765 \
+./scripts/docker_run_openpi_pickplace_zero_shot.sh \
+  --save-debug-dir /workspace/outputs/openpi_debug_run
+```
+
+The most useful files are:
+
+- `outputs/openpi_debug_run/exterior_input.png`
+- `outputs/openpi_debug_run/wrist_input.png`
+
+To record a rollout:
+
+```bash
+OPENPI_SERVER_PORT=8765 \
+OPENPI_PROMPT="pick up the red cube and place it in the red bin" \
+DURATION=12 \
+./scripts/docker_record_openpi_pickplace_zero_shot.sh outputs/pickplace_openpi_zero_shot.mp4
+```
+
+At the moment this records the full Gazebo window under `Xvfb`, including some UI chrome, but it produces a visible mp4 over SSH.
+
+To pull an artifact back to your local machine:
+
+```bash
+scp <user>@<host>:/absolute/path/to/robolicy/outputs/pickplace_openpi_zero_shot.mp4 .
+```
+
+### Current Status
+
+This path is now using:
+
+- a real Panda robot model
+- real Gazebo physics
+- a real robot-mounted wrist RGB camera
+- a dedicated exterior task camera
+- a real `pi0_droid` policy server
+
+The zero-shot bridge is **much more faithful than before**, but it is still not a perfect DROID embodiment. The main remaining weakness is camera calibration quality, not fake actions or teleports.
+
+The older custom Panda arm prototype has been retired. The remaining local scene under [gazebo/README.md](/home/aneeshe/projects/robolicy/gazebo/README.md) is now only a lightweight static reference, not the main manipulation path.
+
 A V1 proof of concept for the **Acrobot** task in a MuJoCo / Gym-style environment. This project tests whether an LLM can act as a **policy maintenance layer** over a fixed library of strong controller primitives—not whether it can invent a better low-level controller from scratch.
 
 ---

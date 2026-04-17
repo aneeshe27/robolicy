@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="parts_bin">
+    <static>true</static>
+    <link name="bin">
+      <collision name="base_collision">
+        <pose>0 0 0.02 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.55 0.40 0.04</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_left_collision">
+        <pose>0.265 0 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.40 0.18</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_right_collision">
+        <pose>-0.265 0 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.40 0.18</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_front_collision">
+        <pose>0 0.19 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.55 0.02 0.18</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="wall_back_collision">
+        <pose>0 -0.19 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.55 0.02 0.18</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="base_visual">
+        <pose>0 0 0.02 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.55 0.40 0.04</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.06 0.24 0.44 1</ambient>
+          <diffuse>0.08 0.31 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_left_visual">
+        <pose>0.265 0 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.40 0.18</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.06 0.24 0.44 1</ambient>
+          <diffuse>0.08 0.31 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_right_visual">
+        <pose>-0.265 0 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.40 0.18</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.06 0.24 0.44 1</ambient>
+          <diffuse>0.08 0.31 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_front_visual">
+        <pose>0 0.19 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.55 0.02 0.18</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.06 0.24 0.44 1</ambient>
+          <diffuse>0.08 0.31 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wall_back_visual">
+        <pose>0 -0.19 0.11 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.55 0.02 0.18</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.06 0.24 0.44 1</ambient>
+          <diffuse>0.08 0.31 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="label_visual">
+        <pose>0 0.205 0.13 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.22 0.003 0.08</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.95 0.95 0.95 1</ambient>
+          <diffuse>0.98 0.98 0.98 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
