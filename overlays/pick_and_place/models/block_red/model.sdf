@@ -5,18 +5,18 @@
       <pose>0.0 0.0 0.0 0 -0 0</pose>
       <inertial>
         <!--
-          5 cm cube at limestone density (~2000 kg/m^3).
-          mass = 2000 * 0.05^3 = 0.250 kg
-          I_xx = I_yy = I_zz = m * L^2 / 6 = 0.250 * 0.0025 / 6 = 1.042e-4
+          3 cm cube at limestone density (~2000 kg/m^3).
+          mass = 2000 * 0.03^3 = 0.054 kg
+          I_xx = I_yy = I_zz = m * L^2 / 6 = 0.054 * 0.0009 / 6 = 8.1e-6
         -->
-        <mass>0.250</mass>
+        <mass>0.054</mass>
         <inertia>
-          <ixx>1.042e-4</ixx>
+          <ixx>8.1e-6</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>1.042e-4</iyy>
+          <iyy>8.1e-6</iyy>
           <iyz>0</iyz>
-          <izz>1.042e-4</izz>
+          <izz>8.1e-6</izz>
         </inertia>
         <pose>0 0 0 0 -0 0</pose>
       </inertial>
@@ -27,7 +27,7 @@
       <visual name='visual'>
         <geometry>
           <box>
-            <size>0.05 0.05 0.05</size>
+            <size>0.03 0.03 0.03</size>
           </box>
         </geometry>
         <material>
@@ -47,14 +47,21 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <box>
-            <size>0.05 0.05 0.05</size>
+            <size>0.03 0.03 0.03</size>
           </box>
         </geometry>
         <surface>
           <friction>
             <ode>
-              <mu>1.0</mu>
-              <mu2>1.0</mu2>
+              <!--
+                Higher friction to keep the cube from slipping out of the
+                Panda's flat silicone fingers during transit. With mu=1.0
+                the cube routinely squirts out under the centripetal load
+                of the swing from +x to -x; 2.5 is still within plausible
+                rubber-on-plastic territory and fixes it in practice.
+              -->
+              <mu>2.5</mu>
+              <mu2>2.5</mu2>
               <fdir1>0 0 0</fdir1>
               <slip1>0</slip1>
               <slip2>0</slip2>
